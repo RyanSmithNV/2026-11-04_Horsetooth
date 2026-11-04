@@ -31,7 +31,7 @@ Writes `data.json` and `public/data.json`. Defaults to water years 2021–2026
 ## Run locally
 
 ```bash
-python3 serve.py            # http://127.0.0.1:8004/
+python3 serve.py            # http://127.0.0.1:61004/
 python3 serve.py --port 9000 --host 0.0.0.0
 ```
 

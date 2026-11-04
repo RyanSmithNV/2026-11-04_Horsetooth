@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Minimal static file server for the Horsetooth Reservoir dashboard.
 
-Serves ./public on http://127.0.0.1:8004 (override with --port/--host).
+Serves ./public on http://127.0.0.1:61004 (override with --port/--host).
 """
 import argparse
 import functools
@@ -25,7 +25,7 @@ class Server(socketserver.ThreadingTCPServer):
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--port", type=int, default=8004)
+    ap.add_argument("--port", type=int, default=61004)
     ap.add_argument("--host", default="127.0.0.1")
     args = ap.parse_args()
 
