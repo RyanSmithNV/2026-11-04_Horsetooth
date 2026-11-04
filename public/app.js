@@ -120,6 +120,61 @@
     };
   }
 
+  function extentOf(points) {
+    var mn = Infinity, mx = -Infinity;
+    for (var i = 0; i < points.length; i++) {
+      var v = points[i][1];
+      if (v < mn) mn = v;
+      if (v > mx) mx = v;
+    }
+    if (!isFinite(mn) || !isFinite(mx)) { mn = 0; mx = 1; }
+    if (mn === mx) { mn -= 1; mx += 1; }
+    return [mn, mx];
+  }
+
+  function visibleExtent(points, win) {
+    if (!win) return extentOf(points);
+    var kept = [];
+    for (var i = 0; i < points.length; i++) {
+      if (points[i][0] >= win[0] && points[i][0] <= win[1]) kept.push(points[i]);
+    }
+    return extentOf(kept.length ? kept : points);
+  }
+
+  /* Current [start, end] timestamps of the zoom window, or null. */
+  function zoomWindow() {
+    if (!state.chart) return null;
+    var dzs = state.chart.getOption().dataZoom || [];
+    for (var i = 0; i < dzs.length; i++) {
+      var dz = dzs[i];
+      if (dz.startValue != null && dz.endValue != null) {
+        return [dz.startValue, dz.endValue];
+      }
+    }
+    var base = state.axisSeries && state.axisSeries[0];
+    if (!base || !base.length) return null;
+    for (var j = 0; j < dzs.length; j++) {
+      var d = dzs[j];
+      if (d.start == null || d.end == null) continue;
+      var i0 = Math.max(0, Math.floor(d.start / 100 * (base.length - 1)));
+      var i1 = Math.min(base.length - 1, Math.ceil(d.end / 100 * (base.length - 1)));
+      return [base[i0][0], base[i1][0]];
+    }
+    return null;
+  }
+
+  /* Re-pin each y-axis to the exact min/max of the data currently on screen. */
+  function applyExtents() {
+    if (!state.chart || !state.axisSeries) return;
+    var win = zoomWindow();
+    var axes = [];
+    for (var i = 0; i < state.axisSeries.length; i++) {
+      var ext = visibleExtent(state.axisSeries[i], win);
+      axes.push({ min: ext[0], max: ext[1] });
+    }
+    state.chart.setOption({ yAxis: axes });
+  }
+
   function renderChart() {
     if (!state.data || !window.echarts) return;
     var d = state.data;
@@ -135,21 +190,26 @@
 
     var series = [];
     var yAxes = [];
+    var axisSeries = [];
 
     if (key === 'FB_QD') {
-      series.push(baseOption(sliceRange(toPoints(d.data.FB)), 'ft', PALETTE.FB, 'Water level (ft)', 0));
-      series.push(baseOption(sliceRange(toPoints(d.data.QD)), 'cfs', PALETTE.QD, 'Outflow (cfs)', 1));
+      var fbPts = sliceRange(toPoints(d.data.FB));
+      var qdPts = sliceRange(toPoints(d.data.QD));
+      series.push(baseOption(fbPts, 'ft', PALETTE.FB, 'Water level (ft)', 0));
+      series.push(baseOption(qdPts, 'cfs', PALETTE.QD, 'Outflow (cfs)', 1));
+      axisSeries = [fbPts, qdPts];
       yAxes = [
-        { type: 'value', name: 'ft', position: 'left', scale: true,
+        { type: 'value', name: 'ft', position: 'left',
           nameTextStyle: { color: PALETTE.FB }, axisLabel: { color: PALETTE.FB },
           splitLine: { lineStyle: { color: '#efece6' } } },
-        { type: 'value', name: 'cfs', position: 'right', scale: true,
+        { type: 'value', name: 'cfs', position: 'right',
           nameTextStyle: { color: PALETTE.QD }, axisLabel: { color: PALETTE.QD },
           splitLine: { show: false } }
       ];
     } else {
       var color = PALETTE[key];
       var pts = sliceRange(toPoints(d.data[key]));
+      axisSeries = [pts];
       if (key === 'PP') {
         series.push({
           name: d.labels[key], type: 'bar', data: pts, yAxisIndex: 0,
@@ -158,10 +218,19 @@
       } else {
         series.push(baseOption(pts, d.units[key], color, d.labels[key], 0));
       }
-      yAxes = [{ type: 'value', name: d.units[key], scale: key !== 'FB',
+      yAxes = [{ type: 'value', name: d.units[key],
         nameTextStyle: { color: color }, axisLabel: { color: color },
         splitLine: { lineStyle: { color: '#efece6' } } }];
     }
+
+    // Pin every y-axis to the exact min/max of the data it plots.
+    yAxes = yAxes.map(function (ax, i) {
+      var ext = extentOf(axisSeries[i]);
+      ax.min = ext[0];
+      ax.max = ext[1];
+      return ax;
+    });
+    state.axisSeries = axisSeries;
 
     state.chart.setOption({
       animationDuration: 400,
@@ -206,6 +275,11 @@
       ],
       series: series
     }, true);
+
+    if (!state.zoomBound) {
+      state.chart.on('datazoom', applyExtents);
+      state.zoomBound = true;
+    }
   }
 
   /* ---------- monthly table ---------- */
