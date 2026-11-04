@@ -1,0 +1,15 @@
+{
+  "name": "horsetooth-water",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Horsetooth Reservoir water level, elevation and outflow dashboard (USBR HydroMet HTOOTHR)",
+  "scripts": {
+    "start": "python3 serve.py",
+    "fetch": "python3 scripts/fetch_horsetooth.py",
+    "deploy": "wrangler pages deploy public --project-name horsetooth",
+    "pages:dev": "wrangler pages dev public"
+  },
+  "devDependencies": {
+    "wrangler": "^3.114.17"
+  }
+}
