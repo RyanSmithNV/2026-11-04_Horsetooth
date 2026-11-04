@@ -16,10 +16,15 @@
     QD: 'Outflow — total discharge',
     IN: 'Inflow — computed',
     PP: 'Precipitation',
-    FB_QD: 'Water level + outflow'
+    FB_QD: 'Water level + outflow',
+    ALL: 'Water level + outflow + inflow + precipitation'
+  };
+  var SERIES_UNITS = {
+    FB: 'ft', AF: 'acre-ft', QD: 'cfs', IN: 'cfs', PP: 'in',
+    FB_QD: 'ft + cfs', ALL: 'ft + cfs + in'
   };
 
-  var state = { data: null, chart: null, series: 'FB', range: 365 };
+  var state = { data: null, chart: null, series: 'ALL', range: 365 };
 
   /* ---------- helpers ---------- */
 
@@ -151,7 +156,7 @@
         return [dz.startValue, dz.endValue];
       }
     }
-    var base = state.axisSeries && state.axisSeries[0];
+    var base = state.basePoints;
     if (!base || !base.length) return null;
     for (var j = 0; j < dzs.length; j++) {
       var d = dzs[j];
@@ -183,21 +188,74 @@
 
     var key = state.series;
     document.getElementById('chart-title').textContent = SERIES_TITLE[key] || key;
-    var unitTxt = key === 'FB_QD' ? 'ft + cfs' : (d.units[key] || '');
     document.getElementById('chart-sub').textContent =
-      d.station_name + ' · ' + unitTxt +
+      d.station_name + ' · ' + (SERIES_UNITS[key] || '') +
       (state.range === 'all' ? ' · full record' : ' · last ' + state.range + ' days');
 
     var series = [];
     var yAxes = [];
     var axisSeries = [];
+    var grids, xAxes, dataZoom;
 
-    if (key === 'FB_QD') {
+    if (key === 'ALL') {
+      // Main grid: level (left, ft) + outflow & inflow (right, cfs).
+      // Second grid: precipitation as a bar strip, zoom-linked to the first.
+      var fbP = sliceRange(toPoints(d.data.FB));
+      var qdP = sliceRange(toPoints(d.data.QD));
+      var inP = sliceRange(toPoints(d.data.IN));
+      var ppP = sliceRange(toPoints(d.data.PP));
+
+      series.push(baseOption(fbP, 'ft', PALETTE.FB, 'Water level (ft)', 0));
+      series.push(baseOption(qdP, 'cfs', PALETTE.QD, 'Outflow (cfs)', 1));
+      series.push(baseOption(inP, 'cfs', PALETTE.IN, 'Inflow (cfs)', 1));
+      series.push({
+        name: 'Precipitation (in)', type: 'bar', data: ppP,
+        xAxisIndex: 1, yAxisIndex: 2,
+        itemStyle: { color: PALETTE.PP + '80' }, barMaxWidth: 5
+      });
+
+      // Axis 1 carries two series, so its extent must span both.
+      axisSeries = [fbP, qdP.concat(inP), ppP];
+
+      grids = [
+        { left: 62, right: 58, top: 34, height: '48%' },
+        { left: 62, right: 58, top: '68%', height: '15%' }
+      ];
+      xAxes = [
+        { type: 'time', gridIndex: 0, axisLine: { lineStyle: { color: '#d8d2c8' } },
+          axisTick: { show: false }, axisLabel: { show: false }, splitLine: { show: false } },
+        { type: 'time', gridIndex: 1, axisLine: { lineStyle: { color: '#d8d2c8' } },
+          axisLabel: { color: '#6b675f', fontSize: 11 }, splitLine: { show: false } }
+      ];
+      yAxes = [
+        { type: 'value', name: 'ft', gridIndex: 0, position: 'left',
+          nameTextStyle: { color: PALETTE.FB }, axisLabel: { color: PALETTE.FB },
+          splitLine: { lineStyle: { color: '#efece6' } } },
+        { type: 'value', name: 'cfs', gridIndex: 0, position: 'right',
+          nameTextStyle: { color: PALETTE.QD }, axisLabel: { color: PALETTE.QD },
+          splitLine: { show: false } },
+        { type: 'value', name: 'in', gridIndex: 1, position: 'right',
+          nameTextStyle: { color: PALETTE.PP }, axisLabel: { color: PALETTE.PP },
+          splitLine: { show: false }, axisLine: { show: false } }
+      ];
+      dataZoom = [
+        { type: 'inside', xAxisIndex: [0, 1], throttle: 40 },
+        { type: 'slider', xAxisIndex: [0, 1], height: 20, bottom: 10,
+          borderColor: '#e6e1d8', backgroundColor: '#faf8f5',
+          fillerColor: 'rgba(123,104,174,0.14)', handleStyle: { color: '#7b68ae' },
+          textStyle: { color: '#6b675f', fontSize: 10 } }
+      ];
+    } else if (key === 'FB_QD') {
       var fbPts = sliceRange(toPoints(d.data.FB));
       var qdPts = sliceRange(toPoints(d.data.QD));
       series.push(baseOption(fbPts, 'ft', PALETTE.FB, 'Water level (ft)', 0));
       series.push(baseOption(qdPts, 'cfs', PALETTE.QD, 'Outflow (cfs)', 1));
       axisSeries = [fbPts, qdPts];
+      grids = [{ left: 62, right: 68, top: 34, bottom: 54 }];
+      xAxes = [{
+        type: 'time', axisLine: { lineStyle: { color: '#d8d2c8' } },
+        axisLabel: { color: '#6b675f', fontSize: 11 }, splitLine: { show: false }
+      }];
       yAxes = [
         { type: 'value', name: 'ft', position: 'left',
           nameTextStyle: { color: PALETTE.FB }, axisLabel: { color: PALETTE.FB },
@@ -205,6 +263,12 @@
         { type: 'value', name: 'cfs', position: 'right',
           nameTextStyle: { color: PALETTE.QD }, axisLabel: { color: PALETTE.QD },
           splitLine: { show: false } }
+      ];
+      dataZoom = [
+        { type: 'inside', throttle: 40 },
+        { type: 'slider', height: 20, bottom: 12, borderColor: '#e6e1d8',
+          backgroundColor: '#faf8f5', fillerColor: 'rgba(123,104,174,0.14)',
+          handleStyle: { color: '#7b68ae' }, textStyle: { color: '#6b675f', fontSize: 10 } }
       ];
     } else {
       var color = PALETTE[key];
@@ -218,9 +282,20 @@
       } else {
         series.push(baseOption(pts, d.units[key], color, d.labels[key], 0));
       }
+      grids = [{ left: 62, right: 24, top: 34, bottom: 54 }];
+      xAxes = [{
+        type: 'time', axisLine: { lineStyle: { color: '#d8d2c8' } },
+        axisLabel: { color: '#6b675f', fontSize: 11 }, splitLine: { show: false }
+      }];
       yAxes = [{ type: 'value', name: d.units[key],
         nameTextStyle: { color: color }, axisLabel: { color: color },
         splitLine: { lineStyle: { color: '#efece6' } } }];
+      dataZoom = [
+        { type: 'inside', throttle: 40 },
+        { type: 'slider', height: 20, bottom: 12, borderColor: '#e6e1d8',
+          backgroundColor: '#faf8f5', fillerColor: 'rgba(123,104,174,0.14)',
+          handleStyle: { color: '#7b68ae' }, textStyle: { color: '#6b675f', fontSize: 10 } }
+      ];
     }
 
     // Pin every y-axis to the exact min/max of the data it plots.
@@ -231,10 +306,14 @@
       return ax;
     });
     state.axisSeries = axisSeries;
+    // Sorted points on the primary x axis, used to map zoom % to timestamps.
+    state.basePoints = axisSeries[0].slice().sort(function (a, b) { return a[0] - b[0]; });
+
+    var axisPointer = key === 'ALL' ? { link: [{ xAxisIndex: 'all' }] } : undefined;
 
     state.chart.setOption({
       animationDuration: 400,
-      grid: { left: 62, right: key === 'FB_QD' ? 68 : 24, top: 34, bottom: 54 },
+      grid: grids,
       legend: { top: 0, textStyle: { color: '#6b675f', fontSize: 12 } },
       tooltip: {
         trigger: 'axis',
@@ -242,6 +321,7 @@
         borderWidth: 0,
         textStyle: { color: '#faf8f5', fontSize: 12 },
         formatter: function (params) {
+          if (!params || !params.length) return '';
           var dt = new Date(params[0].value[0]);
           var head = '<strong>' + fmtDate(dt.toISOString().slice(0, 10)) + '</strong>';
           var rows = params.map(function (p) {
@@ -260,19 +340,10 @@
         },
         iconStyle: { borderColor: '#7b68ae' }
       },
-      xAxis: {
-        type: 'time',
-        axisLine: { lineStyle: { color: '#d8d2c8' } },
-        axisLabel: { color: '#6b675f', fontSize: 11 },
-        splitLine: { show: false }
-      },
+      axisPointer: axisPointer,
+      xAxis: xAxes,
       yAxis: yAxes,
-      dataZoom: [
-        { type: 'inside', throttle: 40 },
-        { type: 'slider', height: 20, bottom: 12, borderColor: '#e6e1d8',
-          backgroundColor: '#faf8f5', fillerColor: 'rgba(123,104,174,0.14)',
-          handleStyle: { color: '#7b68ae' }, textStyle: { color: '#6b675f', fontSize: 10 } }
-      ],
+      dataZoom: dataZoom,
       series: series
     }, true);
 
