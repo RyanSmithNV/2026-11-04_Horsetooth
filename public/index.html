@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Horsetooth Reservoir — Water Level, Elevation &amp; Outflow</title>
+<meta name="description" content="Daily water data for Horsetooth Reservoir, CO (USBR HydroMet station HTOOTHR): forebay elevation, storage, inflow and outflow." />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.css" />
+<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <h1>Horsetooth Reservoir</h1>
+    <p class="sub">Daily water level, elevation &amp; outflow &middot; USBR HydroMet station <code>HTOOTHR</code></p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="cards" id="cards" aria-label="Current conditions"></section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <h2 id="chart-title">Water level / elevation</h2>
+        <p class="hint" id="chart-sub"></p>
+      </div>
+      <div class="controls">
+        <label class="inline">
+          Range
+          <select id="range">
+            <option value="90">Last 90 days</option>
+            <option value="180">Last 180 days</option>
+            <option value="365" selected>Last 12 months</option>
+            <option value="730">Last 24 months</option>
+            <option value="all">Full record</option>
+          </select>
+        </label>
+        <label class="inline">
+          Series
+          <select id="series">
+            <option value="FB" selected>Water level / elevation (ft)</option>
+            <option value="AF">Storage content (acre-ft)</option>
+            <option value="QD">Outflow — total discharge (cfs)</option>
+            <option value="IN">Inflow — computed (cfs)</option>
+            <option value="PP">Precipitation (in/day)</option>
+            <option value="FB_QD">Water level + outflow (dual axis)</option>
+          </select>
+        </label>
+        <button id="refresh" type="button" title="Re-fetch from USBR">Refresh data</button>
+      </div>
+    </div>
+    <div id="chart" class="chart" role="img" aria-label="Time series chart"></div>
+    <p class="fine" id="meta"></p>
+  </section>
+
+  <section class="panel">
+    <h2>Monthly summary <span class="muted" id="monthly-range"></span></h2>
+    <div class="table-scroll">
+      <table id="monthly">
+        <thead>
+          <tr>
+            <th>Month</th><th>Level min</th><th>Level max</th><th>Level Δ</th>
+            <th>Storage (af)</th><th>Inflow (cfs)</th><th>Outflow (cfs)</th><th>Precip (in)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>
+      Source: <a href="https://www.usbr.gov/gp-bin/arc050_form.pl?HTOOTHR" rel="noopener">USBR HydroMet ARC050</a>,
+      station HTOOTHR, Horsetooth Reservoir, CO (SCADA). Water year runs Oct 1 &ndash; Sep 30;
+      each water-year report covers Oct of YYYY through Sep of YYYY+1. Data are provisional.
+    </p>
+    <p id="stamp" class="fine"></p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
