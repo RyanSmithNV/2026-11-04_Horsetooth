@@ -43,26 +43,42 @@ code {
 
 /* ---------- header ---------- */
 .site-header {
-  background: linear-gradient(135deg, var(--indigo) 0%, #2b1746 60%, #3d2260 100%);
-  color: var(--cream);
-  padding: 48px 0 38px;
+  position: relative;
+  background:
+    linear-gradient(100deg, rgba(26, 10, 46, 0.9) 0%, rgba(43, 23, 70, 0.72) 45%, rgba(61, 34, 96, 0.52) 100%),
+    url("./images/header.jpg") center / cover no-repeat;
+  color: #fff;
+  padding: 74px 0 62px;
+  overflow: hidden;
 }
+.site-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(90% 120% at 20% 35%, rgba(26, 10, 46, 0.5) 0%, rgba(26, 10, 46, 0) 65%);
+  pointer-events: none;
+}
+.site-header .wrap { position: relative; z-index: 1; }
 .site-header h1 {
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   font-family: var(--font-display);
-  font-size: 2.15rem;
+  font-size: 2.5rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  letter-spacing: -0.025em;
+  line-height: 1.08;
+  color: #fff;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 .site-header .sub {
   margin: 0;
-  color: #cfc4e2;
-  font-size: 0.98rem;
+  max-width: 46rem;
+  color: #f3edf9;
+  font-size: 1rem;
   font-weight: 400;
-  letter-spacing: 0.005em;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
 }
-.site-header code { background: rgba(212, 175, 55, 0.16); color: #f0dca6; }
+.site-header code { background: rgba(0, 0, 0, 0.3); color: #f0dca6; text-shadow: none; }
 
 /* ---------- cards ---------- */
 .cards {
@@ -190,6 +206,6 @@ td.num { font-family: var(--font-mono); font-size: 0.82rem; }
 
 @media (max-width: 640px) {
   .chart { height: 320px; }
-  .site-header h1 { font-size: 1.5rem; }
+  .site-header h1 { font-size: 1.65rem; }
   .panel { padding: 16px 14px 12px; }
 }
