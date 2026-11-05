@@ -11,6 +11,10 @@
   --inflow: #4a8fb5;
   --storage: #6a9a6a;
   --precip: #7a8ba8;
+
+  --font-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "Sora", "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 * { box-sizing: border-box; }
@@ -20,15 +24,17 @@ html, body {
   padding: 0;
   background: var(--cream);
   color: var(--ink);
-  font-family: "Quicksand", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
   font-weight: 400;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
 
 code {
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 0.9em;
   background: rgba(123, 104, 174, 0.08);
   padding: 1px 5px;
@@ -39,18 +45,22 @@ code {
 .site-header {
   background: linear-gradient(135deg, var(--indigo) 0%, #2b1746 60%, #3d2260 100%);
   color: var(--cream);
-  padding: 44px 0 34px;
+  padding: 48px 0 38px;
 }
 .site-header h1 {
-  margin: 0 0 6px;
-  font-size: 2rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 2.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
 }
 .site-header .sub {
   margin: 0;
   color: #cfc4e2;
   font-size: 0.98rem;
+  font-weight: 400;
+  letter-spacing: 0.005em;
 }
 .site-header code { background: rgba(212, 175, 55, 0.16); color: #f0dca6; }
 
@@ -79,7 +89,7 @@ code {
   color: var(--muted);
 }
 .card .value {
-  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 1.5rem;
   font-weight: 600;
   margin: 4px 0 0;
@@ -100,8 +110,10 @@ code {
 }
 .panel h2 {
   margin: 0 0 4px;
-  font-size: 1.12rem;
-  font-weight: 500;
+  font-family: var(--font-display);
+  font-size: 1.14rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 .panel .muted { color: var(--muted); font-weight: 400; font-size: 0.85rem; }
 .panel-head {
@@ -164,7 +176,7 @@ thead th {
   border-bottom: 2px solid var(--line);
 }
 tbody tr:hover { background: #f6f3ee; }
-td.num { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 0.82rem; }
+td.num { font-family: var(--font-mono); font-size: 0.82rem; }
 
 /* ---------- footer ---------- */
 .site-footer {
