@@ -15,9 +15,10 @@ Source: <https://www.usbr.gov/gp-bin/arc050_form.pl?HTOOTHR>
 | `IN` | Daily mean computed inflow | cfs |
 | `PP` | Total precipitation | in/day |
 
-USBR reports by **water year**, which runs Oct 1 – Sep 30. A water-year report for
-`YYYY` therefore covers Oct `YYYY` through Sep `YYYY+1`, so consecutive reports overlap
-by 11 months. The fetcher merges them and deduplicates by date.
+USBR reports by **water year**, which runs Oct 1 – Sep 30 and is named for the calendar
+year it *ends* in. A report for `YYYY` therefore covers Oct `YYYY-1` through Sep `YYYY`,
+so consecutive reports are contiguous with no overlap. The fetcher merges them and
+deduplicates by date.
 
 ## Refresh the data
 
