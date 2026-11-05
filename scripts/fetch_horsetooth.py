@@ -104,7 +104,9 @@ def parse_year(text: str, year: int) -> dict:
                 if not lo <= val <= hi:
                     continue
                 mo = MONTHS[months[mi]]
-                yr = year if mo >= 10 else year + 1
+                # USBR names a water year by the calendar year it ENDS in:
+                # water year YYYY runs Oct (YYYY-1) through Sep (YYYY).
+                yr = year - 1 if mo >= 10 else year
                 try:
                     d = dt.date(yr, mo, day)
                 except ValueError:
@@ -148,7 +150,7 @@ def summarize(merged: dict) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--years", nargs="+", type=int,
-                    default=[2026, 2025, 2024, 2023, 2022, 2021])
+                    default=[2027, 2026, 2025, 2024, 2023, 2022, 2021])
     ap.add_argument("--out", default="data.json")
     args = ap.parse_args()
 
@@ -171,9 +173,10 @@ def main() -> int:
         "source": "https://www.usbr.gov/gp-bin/arc050_form.pl?HTOOTHR",
         "report": "ARC050, Daily Data for One Year",
         "generated": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
-        "note": ("Water year runs Oct 1 - Sep 30. A water-year report for YYYY "
-                 "covers Oct YYYY through Sep YYYY+1. Days with no value are "
-                 "omitted."),
+        "note": ("USBR names a water year by the calendar year it ENDS in, so water "
+                 "year YYYY runs Oct (YYYY-1) through Sep (YYYY). A report for YYYY "
+                 "therefore covers Oct of the previous calendar year through Sep of "
+                 "YYYY. Days with no value are omitted."),
         "params": PARAMS,
         "units": UNITS,
         "labels": LABELS,

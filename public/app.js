@@ -298,6 +298,15 @@
       ];
     }
 
+    // Monthly x-axis labels: ECharts otherwise picks 2-month ticks for a
+    // one-year window and silently drops October.
+    var xSplitNumber = state.range === 'all' ? 12
+      : Math.max(4, Math.min(12, Math.round(state.range / 30)));
+    xAxes = xAxes.map(function (ax) {
+      ax.splitNumber = xSplitNumber;
+      return ax;
+    });
+
     // Pin every y-axis to the exact min/max of the data it plots.
     yAxes = yAxes.map(function (ax, i) {
       var ext = extentOf(axisSeries[i]);
